@@ -95,8 +95,8 @@ TAGS_V2 = {
     278: ("RowsPerStrip", LONG, 1),
     279: ("StripByteCounts", LONG, 0),
 
-    280: ("MinSampleValue", LONG, 0),
-    281: ("MaxSampleValue", SHORT, 0),
+    280: ("MinSampleValue", LONG, 1),
+    281: ("MaxSampleValue", SHORT, 1),
     282: ("XResolution", RATIONAL, 1),
     283: ("YResolution", RATIONAL, 1),
     284: ("PlanarConfiguration", SHORT, 1, {"Contiguous": 1, "Separate": 2}),
@@ -121,7 +121,7 @@ TAGS_V2 = {
     316: ("HostComputer", ASCII, 1),
     317: ("Predictor", SHORT, 1, {"none": 1, "Horizontal Differencing": 2}),
     318: ("WhitePoint", RATIONAL, 2),
-    319: ("PrimaryChromaticities", SHORT, 6),
+    319: ("PrimaryChromaticities", RATIONAL, 6),
 
     320: ("ColorMap", SHORT, 0),
     321: ("HalftoneHints", SHORT, 2),
@@ -130,16 +130,17 @@ TAGS_V2 = {
     324: ("TileOffsets", LONG, 0),
     325: ("TileByteCounts", LONG, 0),
 
+    330: ("SubIFD", SHORT, 1),
     332: ("InkSet", SHORT, 1),
     333: ("InkNames", ASCII, 1),
     334: ("NumberOfInks", SHORT, 1),
     336: ("DotRange", SHORT, 0),
     337: ("TargetPrinter", ASCII, 1),
     338: ("ExtraSamples", SHORT, 0),
-    339: ("SampleFormat", SHORT, 0),
+    339: ("SampleFormat", SHORT, 1),
 
-    340: ("SMinSampleValue", DOUBLE, 0),
-    341: ("SMaxSampleValue", DOUBLE, 0),
+    340: ("SMinSampleValue", DOUBLE, 1),
+    341: ("SMaxSampleValue", DOUBLE, 1),
     342: ("TransferRange", SHORT, 6),
 
     # obsolete JPEG tags
@@ -156,7 +157,13 @@ TAGS_V2 = {
     529: ("YCbCrCoefficients", RATIONAL, 3),
     530: ("YCbCrSubSampling", SHORT, 2),
     531: ("YCbCrPositioning", SHORT, 1),
-    532: ("ReferenceBlackWhite", LONG, 0),
+    532: ("ReferenceBlackWhite", RATIONAL, 6),
+
+    # sgi, in core
+    32995:("Matteing", SHORT, 1),
+    32996:("DataType", SHORT, 1),
+    32997:("ImageDepth", LONG, 1),
+    32998:("TileDepth", LONG, 1),
 
     33432: ("Copyright", ASCII, 1),
 
@@ -417,23 +424,25 @@ TYPES = {}
 # 393:	case TIFFTAG_INKNAMES:
 
 # some of these are not in our TAGS_V2 dict and were included from tiff.h
+# Anything included here needs to have the correct type in TAGS_V2 above
 
 LIBTIFF_CORE = {255, 256, 257, 258, 259, 262, 263, 266, 274, 277,
                 278, 280, 281, 340, 341, 282, 283, 284, 286, 287,
                 296, 297, 321, 320, 338, 32995, 322, 323, 32998,
                 32996, 339, 32997, 330, 531, 530, 301, 532, 333,
                 # as above
-                269  # this has been in our tests forever, and works
+                269,  # this has been in our tests forever, and works
+                318, # Whitepoint, Specific test for it
+                319, # Primary Chromaticities
                 }
 
-LIBTIFF_CORE.remove(320)  # Array of short, crashes
-LIBTIFF_CORE.remove(301)  # Array of short, crashes
-LIBTIFF_CORE.remove(532)  # Array of long, crashes
+LIBTIFF_CORE.remove(330)  # subifd, requires extra support for uint64 payload
 
 LIBTIFF_CORE.remove(255)  # We don't have support for subfiletypes
 LIBTIFF_CORE.remove(322)  # We don't have support for tiled images in libtiff
 LIBTIFF_CORE.remove(323)  # Tiled images
 LIBTIFF_CORE.remove(333)  # Ink Names either
+LIBTIFF_CORE.remove(301)  # Transfer Function. No support as of yet.
 
 # Note to advanced users: There may be combinations of these
 # parameters and values that when added properly, will work and

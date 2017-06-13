@@ -194,6 +194,7 @@ class TestFileLibTiff(LibTiffTestCase):
                 del(core_items[tag])
             except:
                 pass
+        del(core_items[320])  # colormap is special, tested below
 
         # Type codes:
         #     2: "ascii",
@@ -222,10 +223,20 @@ class TestFileLibTiff(LibTiffTestCase):
 
         out = self.tempfile("temp.tif")
         TiffImagePlugin.WRITE_LIBTIFF = True
-
+        
         im.save(out, tiffinfo=new_ifd)
 
         TiffImagePlugin.WRITE_LIBTIFF = False
+
+    def test_int_dpi(self):
+        # issue #1765
+        im = hopper('RGB')
+        out = self.tempfile('temp.tif')
+        TiffImagePlugin.WRITE_LIBTIFF = True
+        im.save(out, dpi=(72, 72))
+        TiffImagePlugin.WRITE_LIBTIFF = False
+        reloaded = Image.open(out)
+        self.assertEqual(reloaded.info['dpi'], (72.0, 72.0))
 
     def test_g3_compression(self):
         i = Image.open('Tests/images/hopper_g4_500.tif')
@@ -353,6 +364,19 @@ class TestFileLibTiff(LibTiffTestCase):
         im.save(out, compression='tiff_adobe_deflate')
         im2 = Image.open(out)
         self.assert_image_equal(im, im2)
+
+    def test_palette_save(self):
+        im = hopper('P')
+        out = self.tempfile('temp.tif')
+        TiffImagePlugin.WRITE_LIBTIFF = True
+        im.save(out)
+        TiffImagePlugin.WRITE_LIBTIFF = False
+
+        reloaded = Image.open(out)
+        # colormap/palette tag
+        self.assertTrue(len(reloaded.tag_v2[320]), 768)
+        self.assert_image_equal(im, reloaded)
+        
 
     def xtest_bw_compression_w_rgb(self):
         """ This test passes, but when running all tests causes a failure due
@@ -505,6 +529,16 @@ class TestFileLibTiff(LibTiffTestCase):
         # this shouldn't crash
         im.save(out, format='TIFF')
         TiffImagePlugin.WRITE_LIBTIFF = False
+
+        reloaded = Image.open(out)
+
+        self.assert_image_equal(im, reloaded)
+        for tag in (318, 319):
+            for ix in range(len(im.tag_v2[tag])):
+                self.assertAlmostEqual(float(im.tag_v2[tag][ix]),
+                                       float(reloaded.tag_v2[tag][ix]),
+                                       places=5)
+        
 
     def test_page_number_x_0(self):
         # Issue 973

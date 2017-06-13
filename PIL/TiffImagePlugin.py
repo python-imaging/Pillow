@@ -544,7 +544,11 @@ class ImageFileDirectory_v2(collections.MutableMapping):
         if info.length == 1:
             if legacy_api and self.tagtype[tag] in [5, 10]:
                 values = values,
-            dest[tag], = values
+            try:
+                dest[tag], = values
+            except ValueError:
+                # there's a mismatch between the spec and the item from the file.
+                dest[tag] = values
         else:
             dest[tag] = values
 
@@ -663,11 +667,22 @@ class ImageFileDirectory_v2(collections.MutableMapping):
         try:
             for i in range(self._unpack("H", self._ensure_read(fp, 2))[0]):
                 tag, typ, count, data = self._unpack("HHL4s", self._ensure_read(fp, 12))
+                taginfo = TiffTags.lookup(tag)
                 if DEBUG:
-                    tagname = TiffTags.lookup(tag).name
                     typname = TYPES.get(typ, "unknown")
-                    print("tag: %s (%d) - type: %s (%d)" %
-                          (tagname, tag, typname, typ), end=" ")
+                    print("tag: %s (%d) - type: %s (%d) - spec type: %s - count: %d, spec ct: %d" %
+                          (taginfo.name, tag, typname, typ,
+                           taginfo.type, count, taginfo.length), end=" ")
+
+                if (taginfo.type and typ != taginfo.type):
+                    warnings.warn(("Possibly corrupt EXIF data.  " + 
+                                   "File tag type %s does not match spec %s for tag %s"
+                                   ) % (typ, taginfo.type, tag))
+                    
+                if (taginfo.length and count != taginfo.length):
+                    warnings.warn(("Possibly corrupt EXIF data.  " + 
+                                   "File tag count %s does not match spec %s for tag %s"
+                                   ) % (count, taginfo.length, tag))
 
                 try:
                     unit_size, handler = self._load_dispatch[typ]
@@ -1137,6 +1152,8 @@ class TiffImageFile(ImageFile.ImageFile):
             print("- size:", self.size)
 
         sampleFormat = self.tag_v2.get(SAMPLEFORMAT, (1,))
+        if not isinstance(sampleFormat, tuple):
+            sampleFormat = (sampleFormat,)
         if (len(sampleFormat) > 1
            and max(sampleFormat) == min(sampleFormat) == 1):
             # SAMPLEFORMAT is properly per band, so an RGB image will
@@ -1432,14 +1449,26 @@ def _save(im, fp, filename):
         # based on the data in the strip.
         blocklist = [STRIPOFFSETS, STRIPBYTECOUNTS]
         atts = {}
+        # atts is a dict of key: tuple(type, array, count, value)
+        # where type is the tifftype int
+        # array is 0/1 for single or array value
+        # count is the number of items
+        # value is the value, or a tuple of the items.
+        # Note that we've got some items where there's an unspecified length
+        # in the spec (or 0), and they may have 1 item, so they need to be
+        # passed in in the array interface as an array of one item.
+        
         # bits per sample is a single short in the tiff directory, not a list.
-        atts[BITSPERSAMPLE] = bits[0]
+        tag_info = TiffTags.lookup(BITSPERSAMPLE)
+        atts[BITSPERSAMPLE] = (tag_info.type, 0, 1, bits[0])
         # Merge the ones that we have with (optional) more bits from
         # the original file, e.g x,y resolution so that we can
         # save(load('')) == original file.
         legacy_ifd = {}
         if hasattr(im, 'tag'):
             legacy_ifd = im.tag.to_v2()
+            if DEBUG:
+                print("Legacy IFD items: %s" % sorted(legacy_ifd.items()))
         for tag, value in itertools.chain(ifd.items(),
                                           getattr(im, 'tag_v2', {}).items(),
                                           legacy_ifd.items()):
@@ -1450,16 +1479,38 @@ def _save(im, fp, filename):
             # UNDONE --  add code for the custom dictionary
             if tag not in TiffTags.LIBTIFF_CORE:
                 continue
-            if tag not in atts and tag not in blocklist:
-                if isinstance(value, unicode if bytes is str else str):
-                    atts[tag] = value.encode('ascii', 'replace') + b"\0"
-                elif isinstance(value, IFDRational):
-                    atts[tag] = float(value)
-                else:
-                    atts[tag] = value
+            if tag in atts:
+                continue
+            if tag in blocklist:
+                continue
+            tag_info = TiffTags.lookup(tag)
+            # numeric types
+            if tag_info.length == 1:
+                if tag_info.type in (3,4,6,8,9):
+                    atts[tag] = (tag_info.type, 0, 1, int(value))
+                elif tag_info.type in (5,10,11,12):
+                    atts[tag] = (tag_info.type, 0, 1, float(value))
+                elif tag_info.type == 2:
+                    if isinstance(value, unicode if bytes is str else str):
+                        atts[tag] = (tag_info.type, 0, 1,
+                                     value.encode('ascii', 'replace') + b"\0")
+                    else:
+                        atts[tag] = (tag_info.type, 0, 1, value)
+                # we're not sending bytes to libtiff, as they require custom fields.
+                #elif tag_info.type == 7:
+                #    atts[tag] = (tag_info.type, 0, 1, value)
+
+            else: # undefined or set length. 
+                if tag_info.type in (3,4,6,8,9):
+                    atts[tag] = (tag_info.type, 1, len(value), tuple(map(int,value)))
+                elif tag_info.type in (5,10,11,12):
+                    atts[tag] = (tag_info.type, 1, len(value), tuple(map(float,value)))
+            # stringish types    
+
 
         if DEBUG:
             print("Converted items: %s" % sorted(atts.items()))
+            print("Length: %s" % len(atts))
 
         # libtiff always expects the bytes in native order.
         # we're storing image byte order. So, if the rawmode
