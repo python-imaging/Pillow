@@ -26,7 +26,8 @@ except ImportError:  # pragma: no cover
 
 
 class Filter(object):
-    pass
+    def filter(self, image):
+        return image.im
 
 
 class MultibandFilter(Filter):
