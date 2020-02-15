@@ -1383,6 +1383,12 @@ def getchunks(im, **params):
     return fp.data
 
 
+def _convert_mode(im):
+    return {
+        'CMYK':'RGB'
+    }.get(im.mode)
+
+
 # --------------------------------------------------------------------
 # Registry
 
