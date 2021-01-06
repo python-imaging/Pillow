@@ -61,7 +61,7 @@ def test_nondecimal_header(tmp_path):
     with open(path, "wb") as f:
         f.write(b"P6\n128\x00")
 
-    with pytest.raises(UnidentifiedImageError):
+    with pytest.raises(ValueError):
         Image.open(path)
 
 
@@ -70,7 +70,7 @@ def test_truncated_file(tmp_path):
     with open(path, "w") as f:
         f.write("P6")
 
-    with pytest.raises(UnidentifiedImageError):
+    with pytest.raises(ValueError):
         with Image.open(path):
             pass
 
@@ -81,7 +81,7 @@ def test_neg_ppm():
     # has been removed. The default opener doesn't accept negative
     # sizes.
 
-    with pytest.raises(UnidentifiedImageError):
+    with pytest.raises(OSError):
         with Image.open("Tests/images/negative_size.ppm"):
             pass
 
