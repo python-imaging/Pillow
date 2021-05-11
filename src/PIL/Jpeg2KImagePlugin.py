@@ -274,6 +274,10 @@ def _save(im, fp, filename):
     irreversible = info.get("irreversible", False)
     progression = info.get("progression", "LRCP")
     cinema_mode = info.get("cinema_mode", "no")
+    mct = info.get("mct", 0)
+
+    kind = "jp2" if info.get("use_jp2", True) else "j2k"
+
     fd = -1
 
     if hasattr(fp, "fileno"):
@@ -294,6 +298,7 @@ def _save(im, fp, filename):
         irreversible,
         progression,
         cinema_mode,
+        mct,
         fd,
     )
 
