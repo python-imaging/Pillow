@@ -976,3 +976,10 @@ class TestFileLibTiff(LibTiffTestCase):
         with Image.open(out) as im:
             # Assert that there are multiple strips
             assert len(im.tag_v2[STRIPOFFSETS]) > 1
+
+    def test_strip_chop(self):
+        # Test if a single strip image is loaded as chopped
+        TiffImagePlugin.READ_LIBTIFF = True
+        with Image.open("Tests/images/hopper.iccprofile.tif") as im:
+            assert len(im.tag_v2[STRIPOFFSETS]) > 1
+        TiffImagePlugin.READ_LIBTIFF = False
