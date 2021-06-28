@@ -578,6 +578,17 @@ class TestFileLibTiff(LibTiffTestCase):
 
         TiffImagePlugin.READ_LIBTIFF = False
 
+    def test_multipage_seek_backwards(self):
+        TiffImagePlugin.READ_LIBTIFF = True
+        with Image.open("Tests/images/multipage.tiff") as im:
+            im.seek(1)
+            im.load()
+
+            im.seek(0)
+            assert im.convert("RGB").getpixel((0, 0)) == (0, 128, 0)
+
+        TiffImagePlugin.READ_LIBTIFF = False
+
     def test__next(self):
         TiffImagePlugin.READ_LIBTIFF = True
         with Image.open("Tests/images/hopper.tif") as im:
@@ -901,8 +912,13 @@ class TestFileLibTiff(LibTiffTestCase):
             assert_image_equal_tofile(im, "Tests/images/tiff_16bit_RGBa_target.png")
 
     def test_old_style_jpeg(self):
-        infile = "Tests/images/old-style-jpeg-compression.tif"
-        with Image.open(infile) as im:
+        with Image.open("Tests/images/old-style-jpeg-compression.tif") as im:
+            assert_image_equal_tofile(im, "Tests/images/old-style-jpeg-compression.png")
+
+    def test_open_missing_samplesperpixel(self):
+        with Image.open(
+            "Tests/images/old-style-jpeg-compression-no-samplesperpixel.tif"
+        ) as im:
             assert_image_equal_tofile(im, "Tests/images/old-style-jpeg-compression.png")
 
     def test_no_rows_per_strip(self):

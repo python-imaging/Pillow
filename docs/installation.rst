@@ -6,9 +6,9 @@ Warnings
 
 .. warning:: Pillow and PIL cannot co-exist in the same environment. Before installing Pillow, please uninstall PIL.
 
-.. warning:: Pillow >= 1.0 no longer supports "import Image". Please use "from PIL import Image" instead.
+.. warning:: Pillow >= 1.0 no longer supports ``import Image``. Please use ``from PIL import Image`` instead.
 
-.. warning:: Pillow >= 2.1.0 no longer supports "import _imaging". Please use "from PIL.Image import core as _imaging" instead.
+.. warning:: Pillow >= 2.1.0 no longer supports ``import _imaging``. Please use ``from PIL.Image import core as _imaging`` instead.
 
 Python Support
 --------------
@@ -154,7 +154,7 @@ Many of Pillow's features require external libraries:
 
 * **libtiff** provides compressed TIFF functionality
 
-  * Pillow has been tested with libtiff versions **3.x** and **4.0-4.1**
+  * Pillow has been tested with libtiff versions **3.x** and **4.0-4.3**
 
 * **libfreetype** provides type related services
 
@@ -179,7 +179,7 @@ Many of Pillow's features require external libraries:
 
 * **libimagequant** provides improved color quantization
 
-  * Pillow has been tested with libimagequant **2.6-2.14.1**
+  * Pillow has been tested with libimagequant **2.6-2.15.1**
   * Libimagequant is licensed GPLv3, which is more restrictive than
     the Pillow license, therefore we will not be distributing binaries
     with libimagequant support enabled.
@@ -476,6 +476,8 @@ These platforms are built and tested for every change.
 +----------------------------------+--------------------------+-----------------------+
 | Fedora 33                        | 3.9                      |x86-64                 |
 +----------------------------------+--------------------------+-----------------------+
+| Fedora 34                        | 3.9                      |x86-64                 |
++----------------------------------+--------------------------+-----------------------+
 | macOS 10.15 Catalina             | 3.6, 3.7, 3.8, 3.9, PyPy3|x86-64                 |
 +----------------------------------+--------------------------+-----------------------+
 | Ubuntu Linux 16.04 LTS (Xenial)  | 3.6, 3.7, 3.8, 3.9, PyPy3|x86-64                 |
@@ -507,18 +509,18 @@ These platforms have been reported to work at the versions mentioned.
 +----------------------------------+------------------------------+--------------------------------+-----------------------+
 |**Operating system**              |**Tested Python versions**    |**Latest tested Pillow version**|**Tested processors**  |
 +----------------------------------+------------------------------+--------------------------------+-----------------------+
-| macOS 11.0 Big Sur               | 3.8, 3.9                     | 8.1.2                          |arm                    |
+| macOS 11.0 Big Sur               | 3.7, 3.8, 3.9                | 8.2.0                          |arm                    |
 |                                  +------------------------------+--------------------------------+-----------------------+
-|                                  | 3.6, 3.7, 3.8, 3.9           | 8.1.2                          |x86-64                 |
+|                                  | 3.6, 3.7, 3.8, 3.9           | 8.2.0                          |x86-64                 |
 +----------------------------------+------------------------------+--------------------------------+-----------------------+
 | macOS 10.15 Catalina             | 3.6, 3.7, 3.8, 3.9           | 8.0.1                          |x86-64                 |
-|                                  +------------------------------+--------------------------------+                       +
+|                                  +------------------------------+--------------------------------+                       |
 |                                  | 3.5                          | 7.2.0                          |                       |
 +----------------------------------+------------------------------+--------------------------------+-----------------------+
 | macOS 10.14 Mojave               | 3.5, 3.6, 3.7, 3.8           | 7.2.0                          |x86-64                 |
-|                                  +------------------------------+--------------------------------+                       +
+|                                  +------------------------------+--------------------------------+                       |
 |                                  | 2.7                          | 6.0.0                          |                       |
-|                                  +------------------------------+--------------------------------+                       +
+|                                  +------------------------------+--------------------------------+                       |
 |                                  | 3.4                          | 5.4.1                          |                       |
 +----------------------------------+------------------------------+--------------------------------+-----------------------+
 | macOS 10.13 High Sierra          | 2.7, 3.4, 3.5, 3.6           | 4.2.1                          |x86-64                 |
@@ -526,7 +528,7 @@ These platforms have been reported to work at the versions mentioned.
 | macOS 10.12 Sierra               | 2.7, 3.4, 3.5, 3.6           | 4.1.1                          |x86-64                 |
 +----------------------------------+------------------------------+--------------------------------+-----------------------+
 | Mac OS X 10.11 El Capitan        | 2.7, 3.4, 3.5, 3.6, 3.7      | 5.4.1                          |x86-64                 |
-|                                  +------------------------------+--------------------------------+                       +
+|                                  +------------------------------+--------------------------------+                       |
 |                                  | 3.3                          | 4.1.0                          |                       |
 +----------------------------------+------------------------------+--------------------------------+-----------------------+
 | Mac OS X 10.9 Mavericks          | 2.7, 3.2, 3.3, 3.4           | 3.0.0                          |x86-64                 |
@@ -553,6 +555,10 @@ These platforms have been reported to work at the versions mentioned.
 | Raspbian Jessie                  | 2.7, 3.4                     | 3.1.0                          |arm                    |
 +----------------------------------+------------------------------+--------------------------------+-----------------------+
 | Raspbian Stretch                 | 2.7, 3.5                     | 4.0.0                          |arm                    |
++----------------------------------+------------------------------+--------------------------------+-----------------------+
+| Raspberry Pi OS                  | 3.6, 3.7, 3.8, 3.9           | 8.2.0                          |arm                    |
+|                                  +------------------------------+--------------------------------+                       |
+|                                  | 2.7                          | 6.2.2                          |                       |
 +----------------------------------+------------------------------+--------------------------------+-----------------------+
 | Gentoo Linux                     | 2.7, 3.2                     | 2.1.0                          |x86-64                 |
 +----------------------------------+------------------------------+--------------------------------+-----------------------+

@@ -676,9 +676,10 @@ class Image:
             raise ValueError("Could not save to PNG for display") from e
         return b.getvalue()
 
-    @property
-    def __array_interface__(self):
+    def __array__(self):
         # numpy array interface support
+        import numpy as np
+
         new = {}
         shape, typestr = _conv_type_shape(self)
         new["shape"] = shape
@@ -690,7 +691,11 @@ class Image:
             new["data"] = self.tobytes("raw", "L")
         else:
             new["data"] = self.tobytes()
-        return new
+
+        class ArrayData:
+            __array_interface__ = new
+
+        return np.array(ArrayData())
 
     def __getstate__(self):
         return [self.info, self.mode, self.size, self.getpalette(), self.tobytes()]
@@ -825,7 +830,7 @@ class Image:
                 arr = bytes(
                     value for (index, value) in enumerate(arr) if index % 4 != 3
                 )
-            self.im.putpalette(mode, arr)
+            palette_length = self.im.putpalette(mode, arr)
             self.palette.dirty = 0
             self.palette.rawmode = None
             if "transparency" in self.info:
@@ -836,6 +841,7 @@ class Image:
                 self.palette.mode = "RGBA"
             else:
                 self.palette.mode = "RGB"
+                self.palette.palette = self.im.getpalette()[: palette_length * 3]
 
         if self.im:
             if cffi and USE_CFFI_ACCESS:
@@ -1849,7 +1855,7 @@ class Image:
             min(self.size[1], math.ceil(box[3] + support_y)),
         )
 
-    def resize(self, size, resample=BICUBIC, box=None, reducing_gap=None):
+    def resize(self, size, resample=None, box=None, reducing_gap=None):
         """
         Returns a resized copy of this image.
 
@@ -1859,9 +1865,11 @@ class Image:
            one of :py:data:`PIL.Image.NEAREST`, :py:data:`PIL.Image.BOX`,
            :py:data:`PIL.Image.BILINEAR`, :py:data:`PIL.Image.HAMMING`,
            :py:data:`PIL.Image.BICUBIC` or :py:data:`PIL.Image.LANCZOS`.
-           Default filter is :py:data:`PIL.Image.BICUBIC`.
-           If the image has mode "1" or "P", it is
-           always set to :py:data:`PIL.Image.NEAREST`.
+           If the image has mode "1" or "P", it is always set to
+           :py:data:`PIL.Image.NEAREST`.
+           If the image mode specifies a number of bits, such as "I;16", then the
+           default filter is :py:data:`PIL.Image.NEAREST`.
+           Otherwise, the default filter is :py:data:`PIL.Image.BICUBIC`.
            See: :ref:`concept-filters`.
         :param box: An optional 4-tuple of floats providing
            the source image region to be scaled.
@@ -1882,7 +1890,10 @@ class Image:
         :returns: An :py:class:`~PIL.Image.Image` object.
         """
 
-        if resample not in (NEAREST, BILINEAR, BICUBIC, LANCZOS, BOX, HAMMING):
+        if resample is None:
+            type_special = ";" in self.mode
+            resample = NEAREST if type_special else BICUBIC
+        elif resample not in (NEAREST, BILINEAR, BICUBIC, LANCZOS, BOX, HAMMING):
             message = f"Unknown resampling filter ({resample})."
 
             filters = [
@@ -2130,6 +2141,11 @@ class Image:
         elif isinstance(fp, Path):
             filename = str(fp)
             open_fp = True
+        elif fp == sys.stdout:
+            try:
+                fp = sys.stdout.buffer
+            except AttributeError:
+                pass
         if not filename and hasattr(fp, "name") and isPath(fp.name):
             # only set the name for metadata purposes
             filename = fp.name
@@ -2877,7 +2893,7 @@ def open(fp, mode="r", formats=None):
     :param formats: A list or tuple of formats to attempt to load the file in.
        This can be used to restrict the set of formats checked.
        Pass ``None`` to try all supported formats. You can print the set of
-       available formats by running ``python -m PIL`` or using
+       available formats by running ``python3 -m PIL`` or using
        the :py:func:`PIL.features.pilinfo` function.
     :returns: An :py:class:`~PIL.Image.Image` object.
     :exception FileNotFoundError: If the file cannot be found.

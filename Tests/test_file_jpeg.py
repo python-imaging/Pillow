@@ -656,15 +656,6 @@ class TestFileJpeg:
                 reloaded.load()
                 assert im.info["dpi"] == reloaded.info["dpi"]
 
-    def test_load_dpi_rounding(self):
-        # Round up
-        with Image.open("Tests/images/iptc_roundUp.jpg") as im:
-            assert im.info["dpi"] == (44, 44)
-
-        # Round down
-        with Image.open("Tests/images/iptc_roundDown.jpg") as im:
-            assert im.info["dpi"] == (2, 2)
-
     def test_save_dpi_rounding(self, tmp_path):
         outfile = str(tmp_path / "temp.jpg")
         with Image.open("Tests/images/hopper.jpg") as im:
@@ -794,6 +785,20 @@ class TestFileJpeg:
             assert 24 == len(im.info["photoshop"])
             apps_13_lengths = [len(v) for k, v in im.applist if k == "APP13"]
             assert [65504, 24] == apps_13_lengths
+
+    def test_adobe_transform(self):
+        with Image.open("Tests/images/pil_sample_rgb.jpg") as im:
+            assert im.info["adobe_transform"] == 1
+
+        with Image.open("Tests/images/pil_sample_cmyk.jpg") as im:
+            assert im.info["adobe_transform"] == 2
+
+        # This image has been manually hexedited
+        # so that the APP14 reports its length to be 11,
+        # leaving no room for "adobe_transform"
+        with Image.open("Tests/images/truncated_app14.jpg") as im:
+            assert "adobe" in im.info
+            assert "adobe_transform" not in im.info
 
     def test_icc_after_SOF(self):
         with Image.open("Tests/images/icc-after-SOF.jpg") as im:

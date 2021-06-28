@@ -37,6 +37,9 @@ def test_sanity():
     ImageOps.pad(hopper("L"), (128, 128))
     ImageOps.pad(hopper("RGB"), (128, 128))
 
+    ImageOps.contain(hopper("L"), (128, 128))
+    ImageOps.contain(hopper("RGB"), (128, 128))
+
     ImageOps.crop(hopper("L"), 1)
     ImageOps.crop(hopper("RGB"), 1)
 
@@ -99,6 +102,13 @@ def test_fit_same_ratio():
         assert new_im.size == (1000, 755)
 
 
+@pytest.mark.parametrize("new_size", ((256, 256), (512, 256), (256, 512)))
+def test_contain(new_size):
+    im = hopper()
+    new_im = ImageOps.contain(im, new_size)
+    assert new_im.size == (256, 256)
+
+
 def test_pad():
     # Same ratio
     im = hopper()
@@ -144,6 +154,12 @@ def test_scale():
 
     newimg = ImageOps.scale(i, 0.5)
     assert newimg.size == (25, 25)
+
+
+def test_expand_palette():
+    im = Image.open("Tests/images/hopper.gif")
+    im_expanded = ImageOps.expand(im)
+    assert_image_equal(im_expanded.convert("RGB"), im.convert("RGB"))
 
 
 def test_colorize_2color():
@@ -292,6 +308,7 @@ def test_exif_transpose():
                     else:
                         assert transposed_im.info["exif"] != original_exif
 
+                        assert 0x0112 in im.getexif()
                         assert 0x0112 not in transposed_im.getexif()
 
                     # Repeat the operation to test that it does not keep transposing
