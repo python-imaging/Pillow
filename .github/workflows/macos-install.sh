@@ -2,7 +2,9 @@
 
 set -e
 
-brew install libtiff libjpeg openjpeg libimagequant webp little-cms2 freetype openblas libraqm
+brew install \
+    libtiff libjpeg openjpeg libimagequant webp little-cms2 freetype openblas \
+    libraqm dav1d aom rav1e 
 
 PYTHONOPTIMIZE=0 python3 -m pip install cffi
 python3 -m pip install coverage
@@ -17,6 +19,9 @@ python3 -m pip install test-image-results
 echo -e "[openblas]\nlibraries = openblas\nlibrary_dirs = /usr/local/opt/openblas/lib" >> ~/.numpy-site.cfg
 # TODO Remove condition when numpy supports 3.10
 if ! [ "$GHA_PYTHON_VERSION" == "3.10-dev" ]; then python3 -m pip install numpy ; fi
+
+# libavif
+pushd depends && ./install_libavif.sh && popd
 
 # extra test images
 pushd depends && ./install_extra_test_images.sh && popd

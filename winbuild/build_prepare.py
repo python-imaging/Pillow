@@ -34,6 +34,11 @@ def cmd_rmdir(path):
     return f'rmdir /S /Q "{path}"'
 
 
+def cmd_lib_combine(outfile, *libfiles):
+    params = " ".join(['"%s"' % f for f in libfiles])
+    return f"LIB.EXE /OUT:{outfile} {params}"
+
+
 def cmd_nmake(makefile=None, target="", params=None):
     if params is None:
         params = ""
@@ -300,6 +305,43 @@ deps = {
         ],
         "bins": [r"*.dll"],
     },
+    "libavif": {
+        "url": "https://github.com/AOMediaCodec/libavif/archive/v0.9.0.zip",
+        "filename": "libavif-0.9.0.zip",
+        "dir": "libavif-0.9.0",
+        "build": [
+            cmd_cd("ext"),
+            cmd_rmdir("aom"),
+            'cmd.exe /c "aom.cmd"',
+            cmd_rmdir("dav1d"),
+            'cmd.exe /c "dav1d.cmd"',
+            cmd_cd(".."),
+            cmd_rmdir("build"),
+            cmd_mkdir("build"),
+            cmd_cd("build"),
+            cmd_cmake(
+                [
+                    "-DBUILD_SHARED_LIBS=OFF",
+                    "-DAVIF_CODEC_AOM=ON",
+                    "-DAVIF_LOCAL_AOM=ON",
+                    "-DAVIF_CODEC_DAV1D=ON",
+                    "-DAVIF_LOCAL_DAV1D=ON",
+                ],
+                "..",
+            ),
+            cmd_nmake(),
+            cmd_cd(".."),
+            cmd_lib_combine(
+                r"avif.lib",
+                r"build\avif.lib",
+                r"ext\aom\build.libavif\aom.lib",
+                r"ext\dav1d\build\src\libdav1d.a",
+            ),
+            cmd_mkdir(r"{inc_dir}\avif"),
+            cmd_copy(r"include\avif\avif.h", r"{inc_dir}\avif"),
+        ],
+        "libs": [r"*.lib"],
+    },
 }
 
 
@@ -501,6 +543,8 @@ if __name__ == "__main__":
             disabled += ["libimagequant"]
         elif arg == "--no-raqm" or arg == "--no-fribidi":
             disabled += ["fribidi"]
+        elif arg == "--no-avif":
+            disabled += ["libavif"]
         elif arg.startswith("--depends="):
             depends_dir = arg[10:]
         elif arg.startswith("--python="):

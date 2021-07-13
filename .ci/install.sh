@@ -19,7 +19,8 @@ set -e
 
 sudo apt-get -qq install libfreetype6-dev liblcms2-dev python3-tk\
                          ghostscript libffi-dev libjpeg-turbo-progs libopenjp2-7-dev\
-                         cmake imagemagick libharfbuzz-dev libfribidi-dev
+                         cmake imagemagick libharfbuzz-dev libfribidi-dev\
+                         ninja-build nasm
 
 python3 -m pip install --upgrade pip
 PYTHONOPTIMIZE=0 python3 -m pip install cffi
@@ -31,6 +32,7 @@ python3 -m pip install -U pytest-cov
 python3 -m pip install -U pytest-timeout
 python3 -m pip install pyroma
 python3 -m pip install test-image-results
+
 # TODO Remove condition when numpy supports 3.10
 if ! [ "$GHA_PYTHON_VERSION" == "3.10-dev" ]; then python3 -m pip install numpy ; fi
 
@@ -51,6 +53,9 @@ pushd depends && ./install_imagequant.sh && popd
 
 # raqm
 pushd depends && ./install_raqm.sh && popd
+
+# libavif
+pushd depends && ./install_libavif.sh && popd
 
 # extra test images
 pushd depends && ./install_extra_test_images.sh && popd
