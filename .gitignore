@@ -1,42 +1,55 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
+/*.py[cod]
+/src/PIL/*.py[cod]
+/Tests/*.py[cod]
+/docs/*.py[cod]
+/winbuild/*.py[cod]
 
 # C extensions
-*.so
+/src/PIL/*.so
 
 # Distribution / packaging
-.eggs/
+/build/
+/dist/
+/src/*.egg-info/
+/env/
+/.eggs/
 .Python
-env/
-bin/
-build/
 develop-eggs/
-dist/
 eggs/
-lib/
-lib64/
 parts/
 sdist/
-var/
-*.egg-info/
 .installed.cfg
 *.egg
 
 # Installer logs
-pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.cache
-.pytest_cache
-coverage.xml
+/htmlcov/
+/.tox/
+/.coverage
+/.cache
+/.pytest_cache
+/coverage.xml
 
-# Test files
-test_images
+# Extra test images installed from pillow-depends/test_images
+/depends/test_images
+/Tests/images/README.md
+/Tests/images/crash_1.tif
+/Tests/images/crash_2.tif
+/Tests/images/string_dimension.tiff
+/Tests/images/jpeg2000
+/Tests/images/msp
+/Tests/images/picins
+/Tests/images/sunraster
+
+# Sphinx documentation
+/docs/_build/
+
+
+# Common ignores
 
 # Translations
 *.mo
@@ -52,9 +65,6 @@ test_images
 # Django stuff:
 *.log
 *.pot
-
-# Sphinx documentation
-docs/_build/
 
 # viewdoc output
 .long-description.html
@@ -78,16 +88,6 @@ docs/_build/
 
 # JetBrains
 .idea
-
-# Extra test images installed from pillow-depends/test_images
-Tests/images/README.md
-Tests/images/crash_1.tif
-Tests/images/crash_2.tif
-Tests/images/string_dimension.tiff
-Tests/images/jpeg2000
-Tests/images/msp
-Tests/images/picins
-Tests/images/sunraster
 
 # pyinstaller
 *.spec
