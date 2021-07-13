@@ -274,3 +274,31 @@ jobs:
     steps:
       - name: Success
         run: echo Windows Test Successful
+
+  docker:
+    runs-on: windows-2019
+    timeout-minutes: 45
+
+    name: Docker Python 3.7 x86
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - uses: actions/checkout@v1
+      with:
+        repository: python-pillow/pillow-depends
+        ref: master
+
+    - name: Build system information
+      run: python .github/workflows/system-info.py
+
+    - name: Build Docker Image
+      run: |
+        # & $Env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchWindowsEngine
+        echo "This step takes about 20 minutes, please be patient..."
+        docker build -m 2G -t python-pillow-build:latest winbuild\docker
+      shell: pwsh
+
+    - name: Run Docker
+      run: docker run --name PillowBuild -v ${env:GITHUB_WORKSPACE}:C:\Pillow -v ${env:RUNNER_WORKSPACE}\pillow-depends:C:\pillow-depends python-pillow-build C:\Pillow\winbuild\docker\build.cmd
+      shell: pwsh
